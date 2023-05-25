@@ -17,7 +17,12 @@ const router = new VueRouter({
       path: "/calculator",
       name: "calculator",
       component: () => import("../views/CalculatorView.vue"),
-    }
+    },
+    {
+      path: "/calender",
+      name: "calender",
+      component: () => import("../views/CalenderView.vue"),
+    },
   ]
 })
 

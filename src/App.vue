@@ -8,6 +8,7 @@
         <nav>
           <router-link to="/">Home</router-link>
           <router-link to="/calculator">Calculator</router-link>
+          <router-link to="/calender">Calender</router-link>
         </nav>
       </div>
     </header>
