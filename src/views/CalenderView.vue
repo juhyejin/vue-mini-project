@@ -1,91 +1,118 @@
 <script setup lang="ts">
 import AtomButton from "@/components/Atom/button/AtomButton.vue";
+import { reactive } from "vue";
 
+const toDate: Date = new Date();
+const weekDay: ReadonlyArray<string> = ['일','월','화','수','목','금','토'];
+interface currentDay {
+  year: number;
+  month: number;
+  day: number;
+  currentDate: number;
+  currentDays: (number | null)[];
+}
+const currentDayInfo: currentDay = reactive({
+  year: toDate.getFullYear(),
+  month: toDate.getMonth(),
+  day: toDate.getDay(),
+  currentDate: toDate.getDate(),
+  currentDays: [],
+});
+const getDateOfMonth = (year: number, month: number, date: number): number => {
+  const dateOfMonth = new Date(year, month, date);
+  return dateOfMonth.getDate();
+};
+const getDayOfMonth = (year: number, month: number, date: number): number => {
+  const dayOfMonth = new Date(year, month, date);
+  return dayOfMonth.getDay();
+};
 
+const daysOfMonth = (year: number, month: number): void => {
+  const startDayOfMonth = getDayOfMonth(year, month, 1);
+  const lastDateOfMonth = getDateOfMonth(year, month + 1, 0);
+  const daysList: (number|null)[] = Array.from({ length: lastDateOfMonth }, (v, i) => i + 1);
+  for (let i = 0; i < startDayOfMonth; i++) {
+    daysList.unshift(null);
+  }
+  daysList.length = 35;
+  currentDayInfo.currentDays = daysList;
+};
+daysOfMonth(currentDayInfo.year, currentDayInfo.month);
 
+const changeMonth = (val: number) => {
+  toDate.setMonth(toDate.getMonth() + val);
+  currentDayInfo.month = toDate.getMonth();
+  currentDayInfo.year = toDate.getFullYear();
+  daysOfMonth(currentDayInfo.year, currentDayInfo.month);
+};
 </script>
-
 
 <template>
   <main class="calender-container">
     <div class="calender-header">
-      <AtomButton>이전달</AtomButton>
-      <div class="calender-title">2023년 05월</div>
-      <AtomButton>다음달</AtomButton>
+      <AtomButton @click-btn="changeMonth(-1)">이전달</AtomButton>
+      <div class="calender-title">
+        {{ currentDayInfo.year }}년 {{ currentDayInfo.month + 1 }}월
+      </div>
+      <AtomButton @click-btn="changeMonth(1)">다음달</AtomButton>
     </div>
     <div class="calender-body">
-      <div class="days day">1</div>
-      <div class="days day">2</div>
-      <div class="days day">3</div>
-      <div class="days day">4</div>
-      <div class="days day">5</div>
-      <div class="days day">6</div>
-      <div class="days day">7</div>
-      <div class="days day">8</div>
-      <div class="days day">9</div>
-      <div class="days day">10</div>
-      <div class="days day">11</div>
-      <div class="days day">12</div>
-      <div class="days day">13</div>
-      <div class="days day">14</div>
-      <div class="days day">15</div>
-      <div class="days day">16</div>
-      <div class="days day">17</div>
-      <div class="days day">18</div>
-      <div class="days day">19</div>
-      <div class="days day">20</div>
-      <div class="days day">21</div>
-      <div class="days day">22</div>
-      <div class="days day">23</div>
-      <div class="days day">24</div>
-      <div class="days day">25</div>
-      <div class="days day">26</div>
-      <div class="days day">27</div>
-      <div class="days day">28</div>
-      <div class="days day">29
-        <div class="bg-pink">g2</div>
-        <div class="bg-pink">g2</div>
-        <div class="bg-pink">g2</div>
-        <div class="bg-pink">g2</div>
-        그외 4개
-      </div>
-      <div class="days day">30</div>
-      <div class="days day">31</div>
-      <div class="days day"></div>
-      <div class="days day"></div>
-      <div class="days day"></div>
-      <div class="days day"></div>
+      <section class="week">
+        <div v-for="day in weekDay" :key="day">{{ day }}</div>
+      </section>
+      <section class="days-container">
+        <div
+          class="days"
+          v-for="(day, idx) in currentDayInfo.currentDays"
+          :key="idx"
+        >
+          {{ day }}
+        </div>
+      </section>
     </div>
   </main>
 </template>
 
 <style>
 .calender-container{
-  height: 85vh;
   background: #f2f2f2;
   color: #181818;
   padding: 10px;
   display: flex;
   flex-direction: column;
-  gap:10px;
+  gap: 10px;
 }
-.calender-header{
+.calender-container .calender-header{
   display: flex;
   justify-content: center;
   align-self: center;
 }
-.calender-body {
+.calender-container .calender-body {
   flex-grow: 1;
+}
+.calender-container .calender-body .week{
+  grid-column: 1/8;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  grid-auto-rows: 1fr;
+  text-align: center;
 }
-.days{
+.calender-container .calender-body .days-container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-auto-rows: 15vh;
+  gap: 5px;
+}
+.calender-container .calender-body .days-container .days {
   border: 1px solid #2c3e50;
   border-radius: 8px;
 }
 .bg-pink{
   background: pink;
+}
+
+@media (max-width: 520px) {
+  .days-container{
+    grid-auto-rows: 0.4fr;
+  }
 }
 </style>
