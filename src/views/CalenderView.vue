@@ -1,48 +1,79 @@
 <script setup lang="ts">
 import AtomButton from "@/components/Atom/button/AtomButton.vue";
-import { reactive } from "vue";
+import { onMounted, reactive, ref } from "vue";
 
 const toDate: Date = new Date();
-const weekDay: ReadonlyArray<string> = ['일','월','화','수','목','금','토'];
-interface currentDay {
+const weekDay: ReadonlyArray<string> = [
+  "일",
+  "월",
+  "화",
+  "수",
+  "목",
+  "금",
+  "토",
+];
+interface scheduleType {
+  time: string;
+  detail: string;
+}
+interface dayType {
+  fullDay: string;
+  schedule?: scheduleType[];
+}
+interface currentDayType {
   year: number;
   month: number;
   day: number;
   currentDate: number;
-  currentDays: (number | null)[];
 }
-const currentDayInfo: currentDay = reactive({
+interface currentDaysType {
+  day?: number | null;
+  dayInfo?: dayType;
+}
+const currentDayInfo = reactive<currentDayType>({
   year: toDate.getFullYear(),
   month: toDate.getMonth(),
   day: toDate.getDay(),
   currentDate: toDate.getDate(),
-  currentDays: [],
 });
-const getDateOfMonth = (year: number, month: number, date: number): number => {
-  const dateOfMonth = new Date(year, month, date);
-  return dateOfMonth.getDate();
-};
-const getDayOfMonth = (year: number, month: number, date: number): number => {
-  const dayOfMonth = new Date(year, month, date);
-  return dayOfMonth.getDay();
-};
-
-const daysOfMonth = (year: number, month: number): void => {
-  const startDayOfMonth = getDayOfMonth(year, month, 1);
-  const lastDateOfMonth = getDateOfMonth(year, month + 1, 0);
-  const daysList: (number|null)[] = Array.from({ length: lastDateOfMonth }, (v, i) => i + 1);
-  for (let i = 0; i < startDayOfMonth; i++) {
-    daysList.unshift(null);
+const currentDays = ref<currentDaysType[]>([]);
+const repeatAddCurrentDays = (untilNum: number, value?: null): void => {
+  if (value !== null) {
+    for (let i = 0; i < untilNum; i++) {
+      currentDays.value.push({
+        day: i + 1,
+        dayInfo: {
+          fullDay: `${currentDayInfo.year}.${currentDayInfo.month}.${i + 1}`,
+        },
+      });
+    }
+  } else {
+    for (let i = 0; i < untilNum; i++) {
+      currentDays.value.push({
+        day: null,
+         });
+    }
   }
-  daysList.length = 35;
-  currentDayInfo.currentDays = daysList;
 };
-daysOfMonth(currentDayInfo.year, currentDayInfo.month);
+const daysOfMonth = (year: number, month: number): void => {
+  const startDayOfMonth = new Date(year, month, 1).getDay();
+  const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
+  repeatAddCurrentDays(startDayOfMonth, null);
+  repeatAddCurrentDays(lastDateOfMonth);
+  const currentDaysLength = currentDays.value.length;
+  if (currentDaysLength % 7 !== 0) {
+    repeatAddCurrentDays(7 - (currentDaysLength % 7), null);
+  }
+};
+onMounted(() => {
+  daysOfMonth(currentDayInfo.year, currentDayInfo.month);
+});
 
-const changeMonth = (val: number) => {
+const changeMonth = (val: number): void => {
   toDate.setMonth(toDate.getMonth() + val);
   currentDayInfo.month = toDate.getMonth();
   currentDayInfo.year = toDate.getFullYear();
+  currentDays.value = [];
   daysOfMonth(currentDayInfo.year, currentDayInfo.month);
 };
 </script>
@@ -61,12 +92,8 @@ const changeMonth = (val: number) => {
         <div v-for="day in weekDay" :key="day">{{ day }}</div>
       </section>
       <section class="days-container">
-        <div
-          class="days"
-          v-for="(day, idx) in currentDayInfo.currentDays"
-          :key="idx"
-        >
-          {{ day }}
+        <div class="days" v-for="(day, idx) in currentDays" :key="idx">
+          {{ day.day }}
         </div>
       </section>
     </div>
@@ -74,7 +101,7 @@ const changeMonth = (val: number) => {
 </template>
 
 <style>
-.calender-container{
+.calender-container {
   background: #f2f2f2;
   color: #181818;
   padding: 10px;
@@ -82,7 +109,7 @@ const changeMonth = (val: number) => {
   flex-direction: column;
   gap: 10px;
 }
-.calender-container .calender-header{
+.calender-container .calender-header {
   display: flex;
   justify-content: center;
   align-self: center;
@@ -90,7 +117,7 @@ const changeMonth = (val: number) => {
 .calender-container .calender-body {
   flex-grow: 1;
 }
-.calender-container .calender-body .week{
+.calender-container .calender-body .week {
   grid-column: 1/8;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -106,12 +133,12 @@ const changeMonth = (val: number) => {
   border: 1px solid #2c3e50;
   border-radius: 8px;
 }
-.bg-pink{
+.bg-pink {
   background: pink;
 }
 
 @media (max-width: 520px) {
-  .days-container{
+  .days-container {
     grid-auto-rows: 0.4fr;
   }
 }
