@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import AtomButton from "@/components/Atom/button/AtomButton.vue";
 import { onMounted, reactive, ref } from "vue";
+import NewScheduleModal from "@/components/module/NewScheduleModal.vue";
 
-const toDate: Date = new Date();
+const getDateInfo: Date = new Date();
 const weekDay: ReadonlyArray<string> = [
   "일",
   "월",
@@ -12,70 +13,78 @@ const weekDay: ReadonlyArray<string> = [
   "금",
   "토",
 ];
+const isShowNewScheduleModal = ref(false);
+
+const currentDate = ref<string>(
+  getDateInfo.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+  })
+);
+interface yearMonthDayType {
+  year: number;
+  month: number;
+  day: number;
+}
+const currentYearMonthDay= reactive<yearMonthDayType>({
+  year: getDateInfo.getFullYear(),
+  month: getDateInfo.getMonth(),
+  day: getDateInfo.getDay(),
+});
 interface scheduleType {
   time: string;
   detail: string;
 }
-interface dayType {
+interface dayInfoType {
   fullDay: string;
   schedule?: scheduleType[];
 }
-interface currentDayType {
-  year: number;
-  month: number;
-  day: number;
-  currentDate: number;
-}
-interface currentDaysType {
+interface dayOfMonthType {
   day?: number | null;
-  dayInfo?: dayType;
+  dayInfo?: dayInfoType;
 }
-const currentDayInfo = reactive<currentDayType>({
-  year: toDate.getFullYear(),
-  month: toDate.getMonth(),
-  day: toDate.getDay(),
-  currentDate: toDate.getDate(),
-});
-const currentDays = ref<currentDaysType[]>([]);
-const repeatAddCurrentDays = (untilNum: number, value?: null): void => {
-  if (value !== null) {
-    for (let i = 0; i < untilNum; i++) {
-      currentDays.value.push({
-        day: i + 1,
-        dayInfo: {
-          fullDay: `${currentDayInfo.year}.${currentDayInfo.month}.${i + 1}`,
-        },
-      });
-    }
-  } else {
-    for (let i = 0; i < untilNum; i++) {
-      currentDays.value.push({
-        day: null,
-         });
-    }
-  }
-};
+
+const dayOfMonth = ref<dayOfMonthType[]>([]);
 const daysOfMonth = (year: number, month: number): void => {
   const startDayOfMonth = new Date(year, month, 1).getDay();
   const lastDateOfMonth = new Date(year, month + 1, 0).getDate();
   repeatAddCurrentDays(startDayOfMonth, null);
   repeatAddCurrentDays(lastDateOfMonth);
-  const currentDaysLength = currentDays.value.length;
+  const currentDaysLength = dayOfMonth.value.length;
   if (currentDaysLength % 7 !== 0) {
     repeatAddCurrentDays(7 - (currentDaysLength % 7), null);
   }
 };
-onMounted(() => {
-  daysOfMonth(currentDayInfo.year, currentDayInfo.month);
-});
-
-const changeMonth = (val: number): void => {
-  toDate.setMonth(toDate.getMonth() + val);
-  currentDayInfo.month = toDate.getMonth();
-  currentDayInfo.year = toDate.getFullYear();
-  currentDays.value = [];
-  daysOfMonth(currentDayInfo.year, currentDayInfo.month);
+const repeatAddCurrentDays = (untilNum: number, value?: null): void => {
+  if (value !== null) {
+    for (let i = 0; i < untilNum; i++) {
+      dayOfMonth.value.push({
+        day: i + 1,
+        dayInfo: {
+          fullDay: `${currentYearMonthDay.year}. ${currentYearMonthDay.month+1}. ${i + 1}.`,
+        },
+      });
+    }
+  } else {
+    for (let i = 0; i < untilNum; i++) {
+      dayOfMonth.value.push({
+        day: null,
+      });
+    }
+  }
 };
+const changeMonth = (val: number): void => {
+  getDateInfo.setMonth(getDateInfo.getMonth() + val);
+  currentYearMonthDay.month = getDateInfo.getMonth();
+  currentYearMonthDay.year = getDateInfo.getFullYear();
+  dayOfMonth.value = [];
+  daysOfMonth(currentYearMonthDay.year, currentYearMonthDay.month);
+};
+// vue 생명주기
+onMounted(() => {
+  daysOfMonth(currentYearMonthDay.year, currentYearMonthDay.month);
+});
 </script>
 
 <template>
@@ -83,7 +92,7 @@ const changeMonth = (val: number): void => {
     <div class="calender-header">
       <AtomButton @click-btn="changeMonth(-1)">이전달</AtomButton>
       <div class="calender-title">
-        {{ currentDayInfo.year }}년 {{ currentDayInfo.month + 1 }}월
+        {{ currentYearMonthDay.year }}년 {{ currentYearMonthDay.month + 1 }}월
       </div>
       <AtomButton @click-btn="changeMonth(1)">다음달</AtomButton>
     </div>
@@ -92,11 +101,18 @@ const changeMonth = (val: number): void => {
         <div v-for="day in weekDay" :key="day">{{ day }}</div>
       </section>
       <section class="days-container">
-        <div class="days" v-for="(day, idx) in currentDays" :key="idx">
+        <div
+          class="days"
+          :class="{ currentDay: currentDate === day.dayInfo?.fullDay }"
+          v-for="(day, idx) in dayOfMonth"
+          :key="idx"
+          @click="isShowNewScheduleModal = !isShowNewScheduleModal"
+        >
           {{ day.day }}
         </div>
       </section>
     </div>
+    <NewScheduleModal :is-show="isShowNewScheduleModal" @click-close="(value)=> isShowNewScheduleModal = value"/>
   </main>
 </template>
 
@@ -132,10 +148,26 @@ const changeMonth = (val: number): void => {
 .calender-container .calender-body .days-container .days {
   border: 1px solid #2c3e50;
   border-radius: 8px;
+  padding: 10px;
 }
-.bg-pink {
-  background: pink;
+.currentDay{
+  position: relative;
+  color: #fff;
+  z-index: 1;
 }
+.currentDay::before {
+  z-index: -1;
+  width: 25px;
+  height: 25px;
+  background: #4fb995;
+  display: block;
+  position: absolute;
+  top: 10px;
+  left: 1px;
+  content: "";
+  border-radius: 50%;
+}
+
 
 @media (max-width: 520px) {
   .days-container {
