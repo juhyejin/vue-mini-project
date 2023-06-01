@@ -2,24 +2,20 @@
   <button :type="btnType" :name="btnName" @click="clickBtn"><slot></slot></button>
 </template>
 
-<script>
-export default {
-  name: "AtomButton",
-  props: {
-    btnType: {
-      type: String,
-      default: "button",
-    },
-    btnName: {
-      type: String,
-      default: "btnName",
-    },
+<script setup lang="ts">
+defineProps({
+  btnType: {
+    type: String,
+    default: "button",
   },
-  methods: {
-    clickBtn: function (event) {
-      this.$emit("click-btn",event);
-    },
+  btnName: {
+    type: String,
+    default: "btnName",
   },
+});
+const emit = defineEmits(["click-btn"]);
+const clickBtn = (event: MouseEvent): void => {
+  emit("click-btn", event);
 };
 </script>
 
