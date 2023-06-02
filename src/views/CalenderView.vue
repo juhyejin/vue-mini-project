@@ -2,6 +2,8 @@
 import AtomButton from "@/components/Atom/button/AtomButton.vue";
 import { onMounted, reactive, ref } from "vue";
 import NewScheduleModal from "@/components/module/NewScheduleModal.vue";
+import CloseIcon from "@/components/icons/CloseIcon.vue";
+import * as events from "events";
 
 const getDateInfo: Date = new Date();
 const weekDay: ReadonlyArray<string> = [
@@ -112,12 +114,15 @@ const handleSubmitScheduleData = (scheduleData: propsScheduleType):void => {
     detail: scheduleData.detail,
     color: scheduleData.color,
   });
-  console.log(scheduleData)
 };
-const clickSchedule = (event :MouseEvent) =>{
+const deleteSchedule = (
+  event: MouseEvent,
+  dayData: dayOfMonthType,
+  index: number
+) => {
   event.stopPropagation();
-  console.log('일정클릭');
-}
+  dayData.dayInfo?.schedule.splice(index, 1);
+};
 </script>
 
 <template>
@@ -150,12 +155,16 @@ const clickSchedule = (event :MouseEvent) =>{
               v-for="(schedule, ids) in day.dayInfo.schedule"
               :key="ids"
               :style="{ background: schedule.color }"
-              @click="clickSchedule"
+              @click="(event) => event.stopPropagation()"
             >
               <p class="time" v-if="schedule.time.length !== 1">
                 {{ schedule.time }}
               </p>
               {{ schedule.detail }}
+              <CloseIcon
+                class="deleteBtn"
+                @click.native="(event) => deleteSchedule(event, day,ids)"
+              ></CloseIcon>
             </li>
           </ul>
         </div>
@@ -237,8 +246,8 @@ li{
   white-space: nowrap;
   border-radius: 3px;
   margin-top: 3px;
-  cursor: pointer;
   transition: .3s;
+  position: relative;
 }
 li:hover {
   transform: scale(1.1);
@@ -255,6 +264,17 @@ li .time{
   display: none;
   opacity: 0;
   transition: 1s;
+}
+li .deleteBtn{
+  display: none;
+}
+li:hover .deleteBtn{
+  display: block;
+  width: 20px;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(-50%, -50%);
 }
 @media (max-width: 520px) {
   .days-container {
