@@ -1,16 +1,13 @@
-<template>
-  <input :type="inputType" :value="inputValue" />
-</template>
-
 <script setup lang="ts">
 defineProps({
-  inputType:{
+  inputType: {
     type: String,
     default: "text",
   },
-  inputValue: {
-    type: String,
-    default: "",
-  },
+  modelValue: String,
 });
 </script>
+
+<template>
+  <input :type="inputType" :value="modelValue" />
+</template>
