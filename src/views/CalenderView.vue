@@ -38,7 +38,7 @@ interface scheduleType {
 }
 interface dayInfoType {
   fullDay: string;
-  schedule?: scheduleType[];
+  schedule: scheduleType[];
 }
 interface dayOfMonthType {
   day?: number | null;
@@ -62,7 +62,10 @@ const repeatAddCurrentDays = (untilNum: number, value?: null): void => {
       dayOfMonth.value.push({
         day: i + 1,
         dayInfo: {
-          fullDay: `${currentYearMonthDay.year}. ${currentYearMonthDay.month+1}. ${i + 1}.`,
+          fullDay: `${currentYearMonthDay.year}. ${
+            currentYearMonthDay.month + 1
+          }. ${i + 1}.`,
+          schedule: [],
         },
       });
     }
@@ -85,6 +88,28 @@ const changeMonth = (val: number): void => {
 onMounted(() => {
   daysOfMonth(currentYearMonthDay.year, currentYearMonthDay.month);
 });
+const propsCurrentDay = ref<string | undefined>("");
+const clickDay = (dayData: dayOfMonthType): void => {
+  const { day, dayInfo } = dayData;
+  if (day !== null) {
+    propsCurrentDay.value = dayInfo?.fullDay;
+    isShowNewScheduleModal.value = true;
+  }
+};
+
+interface propsScheduleType {
+  fullDay: string;
+  startTime?: string;
+  endTime?: string;
+  detail: string;
+}
+const handleSubmitScheduleData = (scheduleData: propsScheduleType) => {
+  const index = dayOfMonth.value.findIndex((x)=> x.dayInfo?.fullDay === scheduleData.fullDay);
+  dayOfMonth.value[index].dayInfo?.schedule?.push({
+    time: `${scheduleData.startTime}~${scheduleData.endTime}`,
+    detail: scheduleData.detail,
+  });
+};
 </script>
 
 <template>
@@ -106,13 +131,29 @@ onMounted(() => {
           :class="{ currentDay: currentDate === day.dayInfo?.fullDay }"
           v-for="(day, idx) in dayOfMonth"
           :key="idx"
-          @click="isShowNewScheduleModal = !isShowNewScheduleModal"
+          @click="clickDay(day)"
         >
           {{ day.day }}
+          <ul
+            class="scheduleStyle"
+            v-if="day.dayInfo?.schedule.length !== 0 && day.dayInfo?.schedule"
+          >
+            <li v-for="(schedule, ids) in day.dayInfo.schedule" :key="ids">
+              <span v-if="schedule.time.length !== 1">
+                {{ schedule.time }}
+              </span>
+              {{ schedule.detail }}
+            </li>
+          </ul>
         </div>
       </section>
     </div>
-    <NewScheduleModal :is-show="isShowNewScheduleModal" @click-close="(value)=> isShowNewScheduleModal = value"/>
+    <NewScheduleModal
+      :is-show="isShowNewScheduleModal"
+      :current-day="propsCurrentDay"
+      @click-close="(value) => (isShowNewScheduleModal = value)"
+      @submit-schedule-data="handleSubmitScheduleData"
+    />
   </main>
 </template>
 
@@ -159,7 +200,7 @@ onMounted(() => {
   z-index: -1;
   width: 25px;
   height: 25px;
-  background: #4fb995;
+  background: #0c75ff;
   display: block;
   position: absolute;
   top: 10px;
@@ -167,8 +208,12 @@ onMounted(() => {
   content: "";
   border-radius: 50%;
 }
-
-
+ul.scheduleStyle {
+  color: #000;
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
 @media (max-width: 520px) {
   .days-container {
     grid-auto-rows: 0.4fr;
