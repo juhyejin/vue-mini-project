@@ -3,7 +3,6 @@ import AtomButton from "@/components/Atom/button/AtomButton.vue";
 import { onMounted, reactive, ref } from "vue";
 import NewScheduleModal from "@/components/module/NewScheduleModal.vue";
 import CloseIcon from "@/components/icons/CloseIcon.vue";
-import * as events from "events";
 
 const getDateInfo: Date = new Date();
 const weekDay: ReadonlyArray<string> = [
@@ -161,10 +160,12 @@ const deleteSchedule = (
                 {{ schedule.time }}
               </p>
               {{ schedule.detail }}
-              <CloseIcon
+              <div
                 class="deleteBtn"
-                @click.native="(event) => deleteSchedule(event, day,ids)"
-              ></CloseIcon>
+                @click="(event) => deleteSchedule(event, day, ids)"
+              >
+                <CloseIcon style="width: 20px; height: 20px;"/>
+              </div>
             </li>
           </ul>
         </div>
@@ -268,9 +269,9 @@ li .time{
 li .deleteBtn{
   display: none;
 }
-li:hover .deleteBtn{
+li .deleteBtn{
+  height: 20px;
   display: block;
-  width: 20px;
   position: absolute;
   top: 50%;
   right: 0;
