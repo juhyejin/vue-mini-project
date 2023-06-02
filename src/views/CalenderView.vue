@@ -269,7 +269,7 @@ li .time{
 li .deleteBtn{
   display: none;
 }
-li .deleteBtn{
+li:hover .deleteBtn{
   height: 20px;
   display: block;
   position: absolute;
