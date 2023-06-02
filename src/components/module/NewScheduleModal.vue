@@ -15,11 +15,13 @@ interface scheduleType {
   startTime?: string;
   endTime?: string;
   detail: string;
+  color: string;
 }
 const scheduleInfo = reactive<scheduleType>({
   startTime: "",
   endTime: "",
   detail: "",
+  color: "",
 });
 
 const emit = defineEmits(["click-close", "submit-schedule-data"]);
@@ -37,12 +39,13 @@ const clickInCard = (event: MouseEvent): void => {
 };
 const submitSchedule = (event: SubmitEvent): void => {
   event.preventDefault();
-  const { startTime, endTime, detail } = scheduleInfo;
+  const { startTime, endTime, detail, color } = scheduleInfo;
   emit("submit-schedule-data", {
     fullDay: props.currentDay,
     startTime,
     endTime,
     detail,
+    color,
   });
   clickClose();
 };
@@ -75,8 +78,14 @@ const submitSchedule = (event: SubmitEvent): void => {
           <AtomInput
             placeholder="일정을 입력해주세요"
             required
+            style="width: 100%"
             v-model="scheduleInfo.detail"
             @input.native="scheduleInfo.detail = $event.target.value"
+          />
+          <AtomInput
+            input-type="color"
+            :model-value="scheduleInfo.color"
+            @input.native="scheduleInfo.color = $event.target.value"
           />
         </div>
         <AtomButton btn-type="submit" class="btn">확인</AtomButton>

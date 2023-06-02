@@ -35,6 +35,7 @@ const currentYearMonthDay= reactive<yearMonthDayType>({
 interface scheduleType {
   time: string;
   detail: string;
+  color?: string;
 }
 interface dayInfoType {
   fullDay: string;
@@ -102,14 +103,21 @@ interface propsScheduleType {
   startTime?: string;
   endTime?: string;
   detail: string;
+  color: string;
 }
-const handleSubmitScheduleData = (scheduleData: propsScheduleType) => {
+const handleSubmitScheduleData = (scheduleData: propsScheduleType):void => {
   const index = dayOfMonth.value.findIndex((x)=> x.dayInfo?.fullDay === scheduleData.fullDay);
   dayOfMonth.value[index].dayInfo?.schedule?.push({
     time: `${scheduleData.startTime}~${scheduleData.endTime}`,
     detail: scheduleData.detail,
+    color: scheduleData.color,
   });
+  console.log(scheduleData)
 };
+const clickSchedule = (event :MouseEvent) =>{
+  event.stopPropagation();
+  console.log('일정클릭');
+}
 </script>
 
 <template>
@@ -138,10 +146,15 @@ const handleSubmitScheduleData = (scheduleData: propsScheduleType) => {
             class="scheduleStyle"
             v-if="day.dayInfo?.schedule.length !== 0 && day.dayInfo?.schedule"
           >
-            <li v-for="(schedule, ids) in day.dayInfo.schedule" :key="ids">
-              <span v-if="schedule.time.length !== 1">
+            <li
+              v-for="(schedule, ids) in day.dayInfo.schedule"
+              :key="ids"
+              :style="{ background: schedule.color }"
+              @click="clickSchedule"
+            >
+              <p class="time" v-if="schedule.time.length !== 1">
                 {{ schedule.time }}
-              </span>
+              </p>
               {{ schedule.detail }}
             </li>
           </ul>
@@ -188,8 +201,11 @@ const handleSubmitScheduleData = (scheduleData: propsScheduleType) => {
 }
 .calender-container .calender-body .days-container .days {
   border: 1px solid #2c3e50;
+  background: #fff;
   border-radius: 8px;
   padding: 10px;
+  cursor: pointer;
+  transition: 0.4s;
 }
 .currentDay{
   position: relative;
@@ -213,6 +229,32 @@ ul.scheduleStyle {
   list-style: none;
   padding: 0;
   text-align: center;
+}
+li{
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 3px;
+  margin-top: 3px;
+  cursor: pointer;
+  transition: .3s;
+}
+li:hover {
+  transform: scale(1.1);
+}
+li p{
+  font-size: 12px;
+  line-height: 1.5;
+}
+li:hover .time{
+  display: block;
+  opacity: 1;
+}
+li .time{
+  display: none;
+  opacity: 0;
+  transition: 1s;
 }
 @media (max-width: 520px) {
   .days-container {
