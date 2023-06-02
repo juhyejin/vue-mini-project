@@ -5,7 +5,7 @@
 <script setup lang="ts">
 defineProps({
   btnType: {
-    type: String,
+    type: String as () => "button" | "submit" | "reset",
     default: "button",
   },
   btnName: {

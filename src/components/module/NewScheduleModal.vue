@@ -37,7 +37,7 @@ const clickOutCard = (): void => {
 const clickInCard = (event: MouseEvent): void => {
   event.stopPropagation();
 };
-const submitSchedule = (event: SubmitEvent): void => {
+const submitSchedule = (event: Event): void => {
   event.preventDefault();
   const { startTime, endTime, detail, color } = scheduleInfo;
   emit("submit-schedule-data", {
